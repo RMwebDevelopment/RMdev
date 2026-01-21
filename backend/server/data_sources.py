@@ -6,6 +6,21 @@ from typing import Any, Dict, List, Optional
 from .sheets import fetch_csv_rows, read_sheet_dicts
 
 
+def _parse_available(value: Any) -> int:
+    """Convert availability to int, tolerating 'inf' or blanks."""
+    if value is None:
+        return 0
+    if isinstance(value, (int, float)):
+        return int(value)
+    text = str(value).strip().lower()
+    if text in {"inf", "infinite", "∞"}:
+        return 999999
+    try:
+        return int(float(text))
+    except (ValueError, TypeError):
+        return 0
+
+
 def _normalize_date(value: str) -> str:
     """Return ISO date (YYYY-MM-DD) from either ISO or MM/DD/YY."""
     value = value.strip()
@@ -85,7 +100,7 @@ def load_inventory(sheet_id_override: Optional[str] = None) -> List[Dict[str, An
                     "sku": sku,
                     "name": name,
                     "status": (row.get("status") or "unknown").strip(),
-                    "available": int(row.get("available") or 0),
+                    "available": _parse_available(row.get("available")),
                     "eta": (row.get("eta") or "").strip(),
                     "keywords": [k.strip() for k in (row.get("keywords") or "").split(",") if k.strip()],
                     "price_band": (row.get("price_band") or "").strip(),

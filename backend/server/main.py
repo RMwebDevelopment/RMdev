@@ -1138,13 +1138,13 @@ def health() -> Dict[str, bool]:
 
 @app.get("/", response_class=HTMLResponse)
 def root() -> HTMLResponse:
-    print("AI Receptionist API v1.3")
-    return HTMLResponse("<html><body><h3>AI Receptionist API v1.3 is running.</h3></body></html>")
+    print("AI Receptionist API v1.4")
+    return HTMLResponse("<html><body><h3>AI Receptionist API v1.4 is running.</h3></body></html>")
 
 
 @app.head("/")
 def root_head() -> Response:
-    print("AI Receptionist API v1.3 (HEAD)")
+    print("AI Receptionist API v1.4 (HEAD)")
     return Response(status_code=200)
 
 
@@ -1287,6 +1287,12 @@ def chat_endpoint(payload: ChatRequest) -> ChatResponse:
         else:
             lead_captured = True
             args = lead_event.get("arguments") or {}
+            if isinstance(args, str):
+                parsed = _safe_json_loads(args)
+                if isinstance(parsed, dict):
+                    args = parsed
+            if not isinstance(args, dict):
+                args = {}
             c_name = (args.get("name") or "").strip() or "there"
             c_contact = (args.get("phone") or args.get("email") or "").strip() or "your contact info"
             # Always confirm the contact instead of re-asking
